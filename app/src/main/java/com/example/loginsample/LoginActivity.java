@@ -1,22 +1,28 @@
 package com.example.loginsample;
 
-import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
+
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import com.example.loginsample.databinding.ActivityLoginBinding;
+import com.google.gson.Gson;
 
 public class LoginActivity extends AppCompatActivity {
 
     private ActivityLoginBinding binding;
-    private static final String PREFS_NAME = "UserPrefs";
-    private static final String USUARIO = "username";
-    private static final String CONTRA = "password";
+    private static final String TAG = "MainActivity";
+    private  String accountEntityString;
+    private AccountEntity usuario;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,40 +38,67 @@ public class LoginActivity extends AppCompatActivity {
         btnLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Obtener la información del usuario y contraseña
-                String username = edtUsername.getText().toString();
-                String password = edtPassword.getText().toString();
+                if(usuario != null){
+                    String username = usuario.getUsername();
+                    String password = usuario.getPassword();
 
-                // Verificar la autenticación
-                if (authenticateUser(username, password)) {
-                    Toast.makeText(getApplicationContext(), "Bienvenido a mi App", Toast.LENGTH_SHORT).show();
 
-                    // Enviar el nombre de usuario a HomeActivity
-                    Intent intent = new Intent(LoginActivity.this, HomeActivity.class);
-                    intent.putExtra("username", username);
-                    startActivity(intent);
-                } else {
-                    Toast.makeText(getApplicationContext(), "Error en la autenticación", Toast.LENGTH_SHORT).show();
+                    if (edtUsername.getText().toString().equals(username) && edtPassword.getText().toString().equals(password)) {
+                        Toast.makeText(getApplicationContext(), "Bienvenido a mi App", Toast.LENGTH_SHORT).show();
+                        Log.d(TAG, "Bienvenido a mi App");
+
+                        Intent intent = new Intent(LoginActivity.this,HomeActivity.class);
+
+                        intent.putExtra("firstname", usuario.getFirstname());
+                        intent.putExtra("lastname", usuario.getLastname());
+                        intent.putExtra("email", usuario.getEmail());
+                        intent.putExtra("phone", usuario.getPhone());
+                        intent.putExtra("username", usuario.getUsername());
+
+                        startActivity(intent);
+                    }
+                    else {
+                        Toast.makeText(getApplicationContext(),"Error en la autenticacion",Toast.LENGTH_SHORT).show();
+                        Log.d(TAG,"Error en la autenticacion");
+                    }
+
+
+
+                }else{
+                    Toast.makeText(getApplicationContext(),"No hay registros",Toast.LENGTH_SHORT).show();
+                    Log.d(TAG,"No hay registros");
                 }
             }
         });
 
-        btnAddAccount.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(getApplicationContext(), AccountActivity.class);
-                startActivity(intent);
-            }
+        btnAddAccount.setOnClickListener(view -> {
+            Intent intent = new Intent(getApplicationContext(),AccountActivity.class);
+            activityResultLauncher.launch(intent);
         });
     }
 
-    private boolean authenticateUser(String username, String password) {
-        // Obtener los datos guardados del usuario
-        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-        String storedUsername = prefs.getString(USUARIO, "");
-        String storedPassword = prefs.getString(CONTRA, "");
-
-        // Verificar si el usuario y la contraseña coinciden
-        return username.equals(storedUsername) && password.equals(storedPassword);
-    }
+    ActivityResultLauncher<Intent> activityResultLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            new ActivityResultCallback<ActivityResult>() {
+                @Override
+                public void onActivityResult(ActivityResult activityResult) {
+                    if(activityResult.getResultCode()==AccountActivity.ACCOUNT_ACEPTAR) {
+                        Intent data = activityResult.getData();
+                        if (data != null && data.hasExtra(AccountActivity.ACCOUNT_RECORD)) {
+                            String account_record = data.getStringExtra(AccountActivity.ACCOUNT_RECORD);
+                            Gson gson = new Gson();
+                            usuario = gson.fromJson(account_record, AccountEntity.class);
+                            if (usuario != null) {
+                                String firstname = usuario.getFirstname();
+                                Toast.makeText(getApplicationContext(), "Nombre: " + firstname, Toast.LENGTH_SHORT).show();
+                            }
+                        } else {
+                            Toast.makeText(getApplicationContext(), "Error de los datos", Toast.LENGTH_SHORT).show();
+                        }
+                    } else if (activityResult.getResultCode() == AccountActivity.ACCOUNT_CANCELAR) {
+                        Toast.makeText(getApplicationContext(), "Cancelado", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            }
+    );
 }

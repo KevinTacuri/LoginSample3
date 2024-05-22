@@ -13,79 +13,56 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.loginsample.databinding.ActivityAccountBinding;
 
 import com.example.loginsample.databinding.ActivityLoginBinding;
+import com.google.gson.Gson;
 
 public class AccountActivity extends AppCompatActivity {
 
-    private ActivityAccountBinding binding;
-    private static final String PREFS_NAME = "UserPrefs";
-    private static final String USUARIO = "username";
-    private static final String CONTRA = "password";
+    public final static String ACCOUNT_RECORD = "ACCOUNT_RECORD";
+    public final static Integer ACCOUNT_ACEPTAR = 100;
+    public final static Integer ACCOUNT_CANCELAR =  200;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        binding = ActivityAccountBinding.inflate(getLayoutInflater());
-        setContentView(binding.getRoot());
+        setContentView(R.layout.activity_account);
 
-        binding = ActivityAccountBinding.inflate((getLayoutInflater()));
-        setContentView(binding.getRoot());
-        EditText edtFirstname = binding.edtFirstname;
-        EditText edtLastname = binding.edtLastname;
-        EditText edtEmail = binding.edtEmail;
-        EditText edtPhone = binding.edtPhone;
-        EditText edtUsername = binding.edtUsername2;
-        EditText edtPassword = binding.edtPassword2;
-        Button btnOK = binding.btnOK ;
-        Button btnCancel = binding.btnCancel;
+        Button btnAceptar = findViewById(R.id.btnAceptar);
+        Button btnCancelar = findViewById(R.id.btnCancelar);
 
-        btnOK.setOnClickListener(new View.OnClickListener() {
+        EditText edtFirstname = findViewById(R.id.edtFirstname);
+        EditText edtLastname = findViewById(R.id.edtLastname);
+        EditText edtEmail = findViewById(R.id.edtEmail);
+        EditText edtPhone = findViewById(R.id.edtPhone);
+        EditText edtUsername2 = findViewById(R.id.edtUsername2);
+        EditText edtPassword2 = findViewById(R.id.edtPassword2);
+        btnAceptar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (isFormComplete()) {
+                AccountEntity accountEntity = new AccountEntity();
+                accountEntity.setFirstname(edtFirstname.getText().toString());
+                accountEntity.setLastname(edtLastname.getText().toString());
+                accountEntity.setEmail(edtEmail.getText().toString());
+                accountEntity.setPhone(edtPhone.getText().toString());
+                accountEntity.setUsername(edtUsername2.getText().toString());
+                accountEntity.setPassword(edtPassword2.getText().toString());
 
-                    AccountEntity account = new AccountEntity();
+                Gson gson = new Gson();
+                String accountJson = gson.toJson(accountEntity);
 
-                    // Se crea un objeto AccountEntity y establecer los valores
-                    account.setFirstname(edtFirstname.getText().toString());
-                    account.setLastname(edtLastname.getText().toString());
-                    account.setEmail(edtEmail.getText().toString());
-                    account.setPhone(edtPhone.getText().toString());
-                    account.setUsername(edtUsername.getText().toString());
-                    account.setPassword(edtPassword.getText().toString());
+                Intent data = new Intent();
+                data.putExtra(AccountActivity.ACCOUNT_RECORD, accountJson);
 
-                    // SE obtiene la información del usuario y contraseña
-                    String username = binding.edtUsername2.getText().toString();
-                    String password = binding.edtPassword2.getText().toString();
-
-                    // Guardar los datos del usuario en SharedPreferences
-                    SharedPreferences prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-                    SharedPreferences.Editor editor = prefs.edit();
-                    editor.putString(USUARIO, username);
-                    editor.putString(CONTRA, password);
-                    editor.apply();
-
-                    // Ir a LoginActivity
-                    Intent intent = new Intent(AccountActivity.this, LoginActivity.class);
-                    startActivity(intent);
-                }else{
-                    Toast.makeText(getApplicationContext(), "Complete todos los campos", Toast.LENGTH_SHORT).show();
-
-                }
-            }
-        });
-        btnCancel.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+                setResult(ACCOUNT_ACEPTAR, data);
                 finish();
             }
         });
-    }
-    private boolean isFormComplete() {
-        return !binding.edtFirstname.getText().toString().isEmpty() &&
-                !binding.edtLastname.getText().toString().isEmpty() &&
-                !binding.edtEmail.getText().toString().isEmpty() &&
-                !binding.edtPhone.getText().toString().isEmpty() &&
-                !binding.edtUsername2.getText().toString().isEmpty() &&
-                !binding.edtPassword2.getText().toString().isEmpty();
+
+        btnCancelar.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                setResult(ACCOUNT_CANCELAR);
+                finish();
+            }
+        });
     }
 }

@@ -2,7 +2,7 @@ package com.example.loginsample;
 
 import java.io.Serializable;
 
-public class AccountEntity implements Serializable {
+public class AccountEntity  {
     private String firstname;
     private String lastname;
     private String email;
