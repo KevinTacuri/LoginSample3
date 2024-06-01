@@ -1,68 +1,66 @@
 package com.example.loginsample;
 
-import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.view.View;
-import android.widget.EditText;
-import android.widget.Button;
-import android.widget.Toast;
+import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
-import com.example.loginsample.databinding.ActivityAccountBinding;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 
-import com.example.loginsample.databinding.ActivityLoginBinding;
 import com.google.gson.Gson;
 
-public class AccountActivity extends AppCompatActivity {
+public class AccountActivity extends AppCompatActivity implements AccountFragment.OnRegisterListener {
 
     public final static String ACCOUNT_RECORD = "ACCOUNT_RECORD";
     public final static Integer ACCOUNT_ACEPTAR = 100;
-    public final static Integer ACCOUNT_CANCELAR =  200;
+    public final static Integer ACCOUNT_CANCELAR = 200;
+    private AccountEntity usuario;
+
+    private TextView tvUserDetails;
+    private FragmentManager fragmentManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_account);
 
-        Button btnAceptar = findViewById(R.id.btnAceptar);
-        Button btnCancelar = findViewById(R.id.btnCancelar);
+        tvUserDetails = findViewById(R.id.tvUserDetails);
+        fragmentManager = getSupportFragmentManager();
 
-        EditText edtFirstname = findViewById(R.id.edtFirstname);
-        EditText edtLastname = findViewById(R.id.edtLastname);
-        EditText edtEmail = findViewById(R.id.edtEmail);
-        EditText edtPhone = findViewById(R.id.edtPhone);
-        EditText edtUsername2 = findViewById(R.id.edtUsername2);
-        EditText edtPassword2 = findViewById(R.id.edtPassword2);
-        btnAceptar.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                AccountEntity accountEntity = new AccountEntity();
-                accountEntity.setFirstname(edtFirstname.getText().toString());
-                accountEntity.setLastname(edtLastname.getText().toString());
-                accountEntity.setEmail(edtEmail.getText().toString());
-                accountEntity.setPhone(edtPhone.getText().toString());
-                accountEntity.setUsername(edtUsername2.getText().toString());
-                accountEntity.setPassword(edtPassword2.getText().toString());
+        if (savedInstanceState == null) {
+            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+            AccountFragment registerFragment = new AccountFragment();
+            fragmentTransaction.add(R.id.fragment_container, registerFragment);
+            fragmentTransaction.commit();
+        }
+    }
 
-                Gson gson = new Gson();
-                String accountJson = gson.toJson(accountEntity);
+    @Override
+    public void onRegister(AccountEntity accountEntity) {
+        this.usuario = accountEntity;
+        String accountDetails = "Hola " + accountEntity.getFirstname() + " " + accountEntity.getLastname();
+        tvUserDetails.setText(accountDetails);
 
-                Intent data = new Intent();
-                data.putExtra(AccountActivity.ACCOUNT_RECORD, accountJson);
+        // Enviar los datos de vuelta al LoginActivity
+        Intent resultIntent = new Intent();
+        resultIntent.putExtra(ACCOUNT_RECORD, new Gson().toJson(accountEntity));
+        setResult(ACCOUNT_ACEPTAR, resultIntent);
+    }
 
-                setResult(ACCOUNT_ACEPTAR, data);
-                finish();
-            }
-        });
+    @Override
+    public void onCancel() {
+        setResult(ACCOUNT_CANCELAR);
+        finish();
+    }
 
-        btnCancelar.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                setResult(ACCOUNT_CANCELAR);
-                finish();
-            }
-        });
+    @Override
+    public void onClose() {
+        if (usuario != null) {
+            Intent homeIntent = new Intent(AccountActivity.this, HomeActivity.class);
+            homeIntent.putExtra(ACCOUNT_RECORD, new Gson().toJson(usuario));
+            startActivity(homeIntent);
+        }
+        finish();
     }
 }
