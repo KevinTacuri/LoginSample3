@@ -44,7 +44,7 @@ public class LoginActivity extends AppCompatActivity implements AccountFragment.
                     Log.d(TAG, "Bienvenido a mi App");
 
                     Intent intent = new Intent(LoginActivity.this, HomeActivity.class);
-                    intent.putExtra(AccountActivity.ACCOUNT_RECORD, new Gson().toJson(usuario)); // Usa la constante correcta
+                    intent.putExtra(AccountActivity.ACCOUNT_RECORD, new Gson().toJson(usuario)); 
                     startActivity(intent);
                 } else {
                     Toast.makeText(getApplicationContext(), "Error en la autenticación", Toast.LENGTH_SHORT).show();
@@ -88,18 +88,14 @@ public class LoginActivity extends AppCompatActivity implements AccountFragment.
 
     @Override
     public void onRegister(AccountEntity accountEntity) {
-        // Aquí puedes implementar la lógica para manejar el registro del usuario
-        // Puedes acceder a la información del usuario a través del objeto accountEntity recibido
         usuario = accountEntity;
     }
 
     @Override
     public void onCancel() {
-        // Implementa aquí la lógica para cancelar el registro del usuario si es necesario
     }
 
     @Override
     public void onClose() {
-        // Implementa aquí la lógica para cerrar la actividad o realizar alguna acción adicional
     }
 }
